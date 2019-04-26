@@ -86,6 +86,9 @@ class SrlDecoder(object):
         elif tag == const.SRL_TYPE_BINARY:
             return self._track_item(track_pos, self._decode_binary(tag))
 
+        elif tag == const.SRL_TYPE_STR_UTF8:
+            return self._track_item(track_pos, self._decode_binary(tag).decode('utf-8'))
+
         elif tag == const.SRL_TYPE_REFN:
             return self._track_item(track_pos, self._decode_refn(tag))
 
@@ -110,7 +113,7 @@ class SrlDecoder(object):
 
         elif tag == const.SRL_TYPE_REGEXP:
             pattern = self._decode_bytes()
-            flags = self._decode_bytes()
+            flags = self._decode_bytes().decode('ascii')
             python_flags = reduce(lambda x, y: x | re.RegexFlag[str(y).upper()], flags, 0)
             return self._track_item(track_pos, re.compile(pattern, python_flags))
 
@@ -162,7 +165,7 @@ class SrlDecoder(object):
 
     def _decode_binary(self, tag):
         ln = self.reader.read_varint()
-        return self.reader.read_str(ln)
+        return self.reader.read_bytes(ln)
 
     def _decode_refn(self, tag):
         return self._decode_bytes()
@@ -179,4 +182,4 @@ class SrlDecoder(object):
 
     def _decode_short_binary(self, tag):
         ln = tag & const.SRL_SHORT_BINARY_LEN
-        return self.reader.read_str(ln)
+        return self.reader.read_bytes(ln)
